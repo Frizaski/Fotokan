@@ -151,22 +151,67 @@ export default function PhotoCapturePage() {
         </div>
         <canvas ref={canvasRef} className="hidden" />
       </div>
-      <div className="w-full lg:w-80 xl:w-96 flex flex-col gap-3 sm:gap-4 items-center justify-center py-4 sm:py-6 md:py-8">
-        <div className="text-2xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3 md:mb-4 text-center">
-          Captured Photos
-        </div>
-        <div className="w-full space-y-2 sm:space-y-3 max-h-[40vh] lg:max-h-none overflow-auto">
-          {capturedPhotos.map((photo, index) => (
-            <div key={index} className="w-full aspect-video bg-white rounded-lg overflow-hidden border-3 sm:border-4 border-[#FFD700] shadow-lg">
-              <img src={photo} alt={`Captured ${index + 1}`} className="w-full h-full object-cover" />
+      {/* Photo strip preview */}
+      <div className="flex items-center justify-center py-4 sm:py-6 md:py-8">
+        {(() => {
+          const is2x3 = photoCount === 6;
+          const stripW = is2x3 ? 260 : 160;
+          const stripH = is2x3 ? Math.round(stripW * (15 / 9.5)) : stripW * 3;
+          const PAD = 10;
+          const GAP = 6;
+          const FOOTER_H = 20;
+
+          const allSlots = Array.from({ length: photoCount }, (_, i) =>
+            i < capturedPhotos.length ? capturedPhotos[i] : null
+          );
+
+          const PhotoSlot = ({ photo, idx }: { photo: string | null; idx: number }) => (
+            <div className="flex-1 min-h-0">
+              {photo ? (
+                <div className="border-[3px] border-white/90 overflow-hidden h-full bg-black">
+                  <img src={photo} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover" />
+                </div>
+              ) : (
+                <div className="border-[3px] border-white/30 h-full bg-gray-600/40 flex items-center justify-center">
+                  <span className="text-white/30 text-xs font-medium">{idx + 1}</span>
+                </div>
+              )}
             </div>
-          ))}
-          {Array.from({ length: photoCount - capturedPhotos.length }).map((_, index) => (
-            <div key={`placeholder-${index}`} className="w-full aspect-video bg-gray-700/50 rounded-lg border-3 sm:border-4 border-gray-500 flex items-center justify-center">
-              <span className="text-gray-400 text-lg sm:text-xl">Waiting...</span>
+          );
+
+          return (
+            <div
+              className="overflow-hidden shadow-2xl flex flex-col"
+              style={{
+                width: stripW,
+                height: stripH,
+                backgroundColor: '#5a1a1a',
+                border: '8px solid #3a0a0a',
+                padding: PAD,
+              }}
+            >
+              {is2x3 ? (
+                <div className="grid grid-cols-2 flex-1" style={{ gap: GAP }}>
+                  {allSlots.map((photo, i) => (
+                    <PhotoSlot key={i} photo={photo} idx={i} />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col flex-1" style={{ gap: GAP }}>
+                  {allSlots.map((photo, i) => (
+                    <PhotoSlot key={i} photo={photo} idx={i} />
+                  ))}
+                </div>
+              )}
+              <div
+                className="text-center text-white text-[10px] font-semibold tracking-wide opacity-80 flex items-center justify-center flex-shrink-0"
+                style={{ height: FOOTER_H }}
+              >
+                by fotoKAN
+              </div>
             </div>
-          ))}
-        </div>
+          );
+        })()}
       </div>
     </div>
   );

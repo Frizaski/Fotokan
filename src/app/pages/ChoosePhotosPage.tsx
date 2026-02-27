@@ -44,14 +44,14 @@ export default function ChoosePhotosPage() {
     const slotH = availableH / rows;
 
     // Determine aspect ratio for the slot
-    const aspectRatio = layout === '1x3' ? '3 / 4' : '1 / 1';
+    const aspectRatio = layout === '1x4' ? '4 / 3' : '1 / 1';
 
     // Width based on guide proportions (9.5 : 5 ≈ 1.9)
     const stripWidth = layout === '2x3' ? 260 : 140;
 
     const PhotoSlot = ({ h }: { h: number }) => (
       <div
-        className="bg-gray-500/60 rounded-sm w-full"
+        className="bg-gray-500/60 w-full"
         style={{ height: h, aspectRatio }}
       />
     );
@@ -59,7 +59,7 @@ export default function ChoosePhotosPage() {
     if (layout === '2x3') {
       return (
         <div
-          className="bg-[#5a1a1a] rounded-xl shadow-xl border-4 border-[#3a0a0a] flex flex-col"
+          className="bg-[#5a1a1a] shadow-xl border-4 border-[#3a0a0a] flex flex-col"
           style={{ width: stripWidth, height: STRIP_H, padding: PAD }}
         >
           <div
@@ -83,7 +83,7 @@ export default function ChoosePhotosPage() {
     // Single column (1×3 or 1×4)
     return (
       <div
-        className="bg-[#5a1a1a] rounded-xl shadow-xl border-4 border-[#3a0a0a] flex flex-col"
+        className="bg-[#5a1a1a] shadow-xl border-4 border-[#3a0a0a] flex flex-col"
         style={{ width: stripWidth, height: STRIP_H, padding: PAD }}
       >
         <div className="flex flex-col flex-1" style={{ gap: GAP }}>
@@ -105,8 +105,8 @@ export default function ChoosePhotosPage() {
     <div className="size-full flex flex-col items-center bg-[#1a1aff] text-white px-4 sm:px-6 md:px-8 py-6 sm:py-8 overflow-auto">
       {/* Header bar */}
       <div className="w-full flex items-center gap-3 mb-6 sm:mb-8">
-        <div className="bg-[#FFD700] rounded-lg px-2.5 py-1.5 flex items-center justify-center">
-          <span className="text-sm font-bold text-[#1a1aff]">📷 fKa</span>
+        <div className="bg-[#ffffff] rounded-sm px-1 py-1 flex items-center justify-center shadow-2xl">
+          <img src="/logo.png" className="w-18 h-10" alt="Logo" />
         </div>
         <p className="text-sm sm:text-base text-white/80" style={{ fontFamily: "'Poppins', sans-serif" }}>
           Photobooth by <span className="text-[#FFD700] font-bold">fotoKAN</span> – bring the moment with you

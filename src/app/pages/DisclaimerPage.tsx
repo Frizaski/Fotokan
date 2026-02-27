@@ -7,8 +7,8 @@ export default function DisclaimerPage() {
     <div className="size-full flex flex-col bg-[#1a1aff] text-white px-4 sm:px-6 md:px-8 py-6 sm:py-8">
       {/* Header bar */}
       <div className="w-full flex items-center gap-3">
-        <div className="bg-[#FFD700] rounded-lg px-2.5 py-1.5 flex items-center justify-center">
-          <span className="text-sm font-bold text-[#1a1aff]">📷 fKa</span>
+        <div className="bg-[#ffffff] rounded-sm px-1 py-1 flex items-center justify-center shadow-2xl">
+          <img src="/logo.png" className="w-18 h-10" alt="Logo" />
         </div>
         <p className="text-sm sm:text-base text-white/80" style={{ fontFamily: "'Poppins', sans-serif" }}>
           Photobooth by <span className="text-[#FFD700] font-bold">fotoKAN</span> – bring the moment with you

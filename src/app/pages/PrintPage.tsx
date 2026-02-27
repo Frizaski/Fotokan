@@ -1,10 +1,38 @@
 import { useNavigate } from 'react-router';
 import { usePhotobooth } from '../context/PhotoboothContext';
 import PhotoStrip from '../components/PhotoStrip';
+import { useState, useEffect } from 'react';
+import { apiFetch } from '../utils/api';
+
+interface SpecialFrame {
+  id: string;
+  name: string;
+  slot: number;
+  design_1x3: string;
+  design_1x4: string;
+  design_2x3: string;
+}
+
+interface SpecialSticker {
+  id: string;
+  name: string;
+  slot: number;
+  design_1x3: string;
+  design_1x4: string;
+  design_2x3: string;
+}
 
 export default function PrintPage() {
   const navigate = useNavigate();
   const { printQuantity, setPrintQuantity, selectedBackground, selectedSticker } = usePhotobooth();
+
+  const [specialFrames, setSpecialFrames] = useState<SpecialFrame[]>([]);
+  const [specialStickers, setSpecialStickers] = useState<SpecialSticker[]>([]);
+
+  useEffect(() => {
+    apiFetch('/api/special-frames').then(r => r.json()).then(setSpecialFrames).catch(() => {});
+    apiFetch('/api/special-stickers').then(r => r.json()).then(setSpecialStickers).catch(() => {});
+  }, []);
 
   const handlePrint = () => {
     // Mock print functionality
@@ -27,7 +55,7 @@ export default function PrintPage() {
   return (
     <div className="size-full flex flex-col lg:flex-row bg-[#1a1aff] text-white p-4 sm:p-6 md:p-8 gap-6 md:gap-8 overflow-auto">
       <div className="flex-1 flex items-center justify-center min-h-[300px] lg:min-h-0">
-        <PhotoStrip background={selectedBackground} sticker={selectedSticker} />
+        <PhotoStrip background={selectedBackground} sticker={selectedSticker} specialFrames={specialFrames} specialStickers={specialStickers} />
       </div>
       <div className="flex-1 flex flex-col items-center justify-center gap-8 sm:gap-10 md:gap-12 py-6 sm:py-8">
         <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-center px-4">Mau print berapa lembar?</h2>
