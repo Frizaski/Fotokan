@@ -1,8 +1,9 @@
 // Generate placeholder photo (colored canvas with text)
-export function generatePlaceholderPhoto(index: number): string {
+export function generatePlaceholderPhoto(index: number, photoCount: number = 4): string {
   const canvas = document.createElement('canvas');
+  // Match aspect ratio to frame layout: 1x4 → 4:3, 1x3 & 2x3 → 1:1 (square)
   canvas.width = 640;
-  canvas.height = 480;
+  canvas.height = photoCount === 4 ? 480 : 640;
   const ctx = canvas.getContext('2d');
   
   if (ctx) {

@@ -202,7 +202,7 @@ async function renderStripToCanvas(
 
 export default function CustomizePage() {
   const navigate = useNavigate();
-  const { selectedBackground, setSelectedBackground, selectedSticker, setSelectedSticker, capturedPhotos, photoCount } = usePhotobooth();
+  const { selectedBackground, setSelectedBackground, selectedSticker, setSelectedSticker, capturedPhotos, photoCount, setStripDataUrl } = usePhotobooth();
   const [isSaving, setIsSaving] = useState(false);
 
   const [specialFrames, setSpecialFrames] = useState<SpecialFrame[]>([]);
@@ -390,6 +390,8 @@ export default function CustomizePage() {
                     specialStickers,
                     selectedSticker,
                   );
+                  // Store in context for PrintPage to access
+                  setStripDataUrl(dataUrl);
                   const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
                   const resp = await apiFetch('/api/photos', {
                     method: 'POST',

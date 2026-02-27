@@ -154,13 +154,22 @@ export default function SendEmailPage() {
   };
 
   return (
-    <div className="size-full flex flex-col lg:flex-row bg-[#1a1aff] text-white p-4 sm:p-6 md:p-8 gap-6 md:gap-8 overflow-auto">
+    <div className="size-full flex flex-col bg-[#1a1aff] text-white overflow-hidden">
+      <div className="w-full flex items-center gap-3 px-4 sm:px-6 md:px-8 py-4 sm:py-5 flex-shrink-0">
+        <div className="bg-[#ffffff] rounded-sm px-1 py-1 flex items-center justify-center shadow-2xl">
+          <img src="/logo.png" className="w-18 h-10" alt="Logo" />
+        </div>
+        <p className="text-sm sm:text-base text-white/80" style={{ fontFamily: "'Poppins', sans-serif" }}>
+          Photobooth by <span className="text-[#FFD700] font-bold">fotoKAN</span> – bring the moment with you
+        </p>
+      </div>
+      <div className="flex-1 flex flex-col lg:flex-row p-4 sm:p-6 md:p-8 gap-6 md:gap-8 overflow-auto min-h-0">
       {/* LEFT COLUMN: Email Input, Keyboard, Send Button */}
       <div className="flex-1 flex flex-col items-center justify-center gap-4 sm:gap-6 px-4 sm:px-8 md:px-12 min-h-0">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center" style={{ fontFamily: "'Oilvare Base', sans-serif" }}>
           Enter your email to receive
         </h2>
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-2 sm:mb-4">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-2 sm:mb-4" style={{ fontFamily: "'Oilvare Base', sans-serif" }}>
           your GIF
         </h2>
         <input
@@ -237,6 +246,7 @@ export default function SendEmailPage() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

@@ -70,11 +70,20 @@ export default function PinGatePage() {
   };
 
   return (
-    <div className="size-full flex flex-col items-center justify-center bg-[#0f0f2e] text-white px-4">
+    <div className="size-full flex flex-col bg-[#0f0f2e] text-white overflow-hidden">
+      <div className="w-full flex items-center gap-3 px-4 sm:px-6 md:px-8 py-4 sm:py-5 flex-shrink-0">
+        <div className="bg-[#ffffff] rounded-sm px-1 py-1 flex items-center justify-center shadow-2xl">
+          <img src="/logo.png" className="w-18 h-10" alt="Logo" />
+        </div>
+        <p className="text-sm sm:text-base text-white/80" style={{ fontFamily: "'Poppins', sans-serif" }}>
+          Photobooth by <span className="text-[#FFD700] font-bold">fotoKAN</span> – bring the moment with you
+        </p>
+      </div>
+      <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0">
       {/* Title */}
       <h1
         className="text-5xl sm:text-7xl md:text-8xl font-bold tracking-wider mb-2 uppercase"
-        style={{ fontFamily: "Impact, serif", letterSpacing: "0.1em" }}
+        style={{ fontFamily: "'Oilvare Base', sans-serif", letterSpacing: "0.1em" }}
       >
         Photobooth
       </h1>
@@ -122,6 +131,7 @@ export default function PinGatePage() {
         >
           {loading ? "Memverifikasi..." : "Masuk"}
         </button>
+      </div>
       </div>
     </div>
   );

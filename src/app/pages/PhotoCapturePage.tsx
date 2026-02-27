@@ -15,6 +15,10 @@ export default function PhotoCapturePage() {
   const [flash, setFlash] = useState(false);
   const [cameraError, setCameraError] = useState(false);
 
+  // Camera aspect ratio matching photo cell ratio in the strip
+  // 1x3: ~1:1 (square), 1x4: ~4:3 (landscape), 2x3: ~1:1 (square)
+  const photoCellRatio = photoCount === 4 ? 4 / 3 : 1;
+
   useEffect(() => {
     async function setupCamera() {
       try {
@@ -52,30 +56,50 @@ export default function PhotoCapturePage() {
     let photoDataUrl: string;
     
     if (videoRef.current && canvasRef.current && stream) {
-      // Capture from camera
+      // Capture from camera, cropped to match strip cell ratio
       const canvas = canvasRef.current;
       const video = videoRef.current;
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+      const videoW = video.videoWidth;
+      const videoH = video.videoHeight;
+
+      // Center-crop video frame to target aspect ratio
+      const videoRatio = videoW / videoH;
+      let srcX: number, srcY: number, srcW: number, srcH: number;
+      if (videoRatio > photoCellRatio) {
+        // Video wider than target → crop left/right
+        srcH = videoH;
+        srcW = Math.round(videoH * photoCellRatio);
+        srcX = Math.round((videoW - srcW) / 2);
+        srcY = 0;
+      } else {
+        // Video taller than target → crop top/bottom
+        srcW = videoW;
+        srcH = Math.round(videoW / photoCellRatio);
+        srcX = 0;
+        srcY = Math.round((videoH - srcH) / 2);
+      }
+
+      canvas.width = srcW;
+      canvas.height = srcH;
       const ctx = canvas.getContext('2d');
-      if (ctx && video.videoWidth > 0) {
+      if (ctx && videoW > 0) {
         ctx.save();
         ctx.scale(-1, 1);
-        ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+        ctx.drawImage(video, srcX, srcY, srcW, srcH, -canvas.width, 0, canvas.width, canvas.height);
         ctx.restore();
         photoDataUrl = canvas.toDataURL('image/jpeg');
       } else {
         // Fallback to placeholder
-        photoDataUrl = generatePlaceholderPhoto(currentPhotoIndex);
+        photoDataUrl = generatePlaceholderPhoto(currentPhotoIndex, photoCount);
       }
     } else {
       // Use placeholder when camera not available
-      photoDataUrl = generatePlaceholderPhoto(currentPhotoIndex);
+      photoDataUrl = generatePlaceholderPhoto(currentPhotoIndex, photoCount);
     }
     
     setCapturedPhotos((prev) => [...prev, photoDataUrl]);
     setCurrentPhotoIndex(prev => prev + 1);
-  }, [stream, currentPhotoIndex, setCapturedPhotos]);
+  }, [stream, currentPhotoIndex, setCapturedPhotos, photoCellRatio, photoCount]);
 
   useEffect(() => {
     if (currentPhotoIndex >= photoCount) {
@@ -115,7 +139,10 @@ export default function PhotoCapturePage() {
             <p className="text-[#FFD700] text-base sm:text-lg md:text-xl font-semibold text-center">📷 Demo Mode - Using Placeholder Images</p>
           </div>
         )}
-        <div className="relative w-full max-w-3xl aspect-video bg-black rounded-lg overflow-hidden border-3 sm:border-4 border-[#FFD700]">
+        <div
+          className={`relative w-full ${photoCount === 4 ? 'max-w-5xl' : 'max-w-3xl'} bg-black rounded-lg overflow-hidden border-3 sm:border-4 border-[#FFD700]`}
+          style={{ aspectRatio: photoCellRatio }}
+        >
           {cameraError ? (
             <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
               <div className="text-center p-4 sm:p-6 md:p-8">

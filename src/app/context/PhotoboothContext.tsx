@@ -12,6 +12,9 @@ interface PhotoboothState {
   setSelectedSticker: (sticker: string) => void;
   printQuantity: number;
   setPrintQuantity: (quantity: number) => void;
+  /** Rendered photo strip as PNG data URL, ready for printing */
+  stripDataUrl: string;
+  setStripDataUrl: (url: string) => void;
   resetSession: () => void;
 }
 
@@ -23,6 +26,7 @@ export function PhotoboothProvider({ children }: { children: ReactNode }) {
   const [selectedBackground, setSelectedBackground] = useState('yellow');
   const [selectedSticker, setSelectedSticker] = useState('none');
   const [printQuantity, setPrintQuantity] = useState(2);
+  const [stripDataUrl, setStripDataUrl] = useState('');
 
   const addCapturedPhoto = (photo: string) => {
     setCapturedPhotos(prev => [...prev, photo]);
@@ -34,6 +38,7 @@ export function PhotoboothProvider({ children }: { children: ReactNode }) {
     setSelectedBackground('yellow');
     setSelectedSticker('none');
     setPrintQuantity(2);
+    setStripDataUrl('');
   };
 
   return (
@@ -50,6 +55,8 @@ export function PhotoboothProvider({ children }: { children: ReactNode }) {
         setSelectedSticker,
         printQuantity,
         setPrintQuantity,
+        stripDataUrl,
+        setStripDataUrl,
         resetSession,
       }}
     >

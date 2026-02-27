@@ -129,9 +129,18 @@ export default function CameraPreviewPage() {
   };
 
   return (
-    <div className="size-full flex flex-col lg:flex-row bg-[#1a1aff] text-white p-4 sm:p-6 md:p-8 gap-6 md:gap-8 lg:gap-12 overflow-auto">
+    <div className="size-full flex flex-col bg-[#1a1aff] text-white overflow-hidden">
+      <div className="w-full flex items-center gap-3 px-4 sm:px-6 md:px-8 py-4 sm:py-5 flex-shrink-0">
+        <div className="bg-[#ffffff] rounded-sm px-1 py-1 flex items-center justify-center shadow-2xl">
+          <img src="/logo.png" className="w-18 h-10" alt="Logo" />
+        </div>
+        <p className="text-sm sm:text-base text-white/80" style={{ fontFamily: "'Poppins', sans-serif" }}>
+          Photobooth by <span className="text-[#FFD700] font-bold">fotoKAN</span> – bring the moment with you
+        </p>
+      </div>
+      <div className="flex-1 flex flex-col lg:flex-row p-4 sm:p-6 md:p-8 gap-6 md:gap-8 lg:gap-12 overflow-auto min-h-0">
       <div className="flex-1 flex flex-col items-center justify-center gap-4 md:gap-6 min-h-0">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center">Camera Preview</h2>
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center" style={{ fontFamily: "'Oilvare Base', sans-serif" }}>Camera Preview</h2>
         <div className="relative w-full max-w-4xl aspect-video bg-black rounded-lg md:rounded-xl overflow-hidden border-6 md:border-8 border-[#FFD700] shadow-2xl">
           {showPermissionPrompt ? (
             <div className="absolute inset-0 flex items-center justify-center text-white bg-gradient-to-br from-[#1a1aff] to-[#0d0d80] p-4">
@@ -263,6 +272,7 @@ export default function CameraPreviewPage() {
         >
           Start
         </button>
+      </div>
       </div>
     </div>
   );
