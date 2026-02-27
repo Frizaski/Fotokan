@@ -7,15 +7,21 @@ export default function CustomizePage() {
   const { selectedBackground, setSelectedBackground, selectedSticker, setSelectedSticker } = usePhotobooth();
 
   const backgrounds = [
-    { name: 'yellow', label: 'Yellow', color: '#FFD700' },
-    { name: 'blue', label: 'Blue', color: '#1E90FF' },
-    { name: 'maroon', label: 'Maroon', color: '#800000' },
-    { name: 'black', label: 'Black', color: '#000000' },
-    { name: 'white', label: 'White', color: '#FFFFFF' },
-    { name: 'babypink', label: 'Baby Pink', color: '#FFB6C1' },
+    { name: 'special1', label: 'Special\nevent 1' },
+    { name: 'special2', label: 'Special\nevent 2' },
+    { name: 'special3', label: 'Special\nevent 3' },
+    { name: 'yellow', label: 'Yellow' },
+    { name: 'blue', label: 'Blue' },
+    { name: 'maroon', label: 'Maroon' },
+    { name: 'black', label: 'Black' },
+    { name: 'white', label: 'White' },
+    { name: 'babypink', label: 'Baby Pink' },
   ];
 
   const stickers = [
+    { name: 'special1', label: 'Special\nevent 1' },
+    { name: 'special2', label: 'Special\nevent 2' },
+    { name: 'special3', label: 'Special\nevent 3' },
     { name: 'star', label: 'Star' },
     { name: 'heart', label: 'Heart' },
     { name: 'bubble', label: 'Bubble' },
@@ -24,59 +30,96 @@ export default function CustomizePage() {
     { name: 'none', label: 'No sticker' },
   ];
 
+  const OptionButton = ({
+    selected,
+    label,
+    onClick,
+  }: {
+    selected: boolean;
+    label: string;
+    onClick: () => void;
+  }) => (
+    <button
+      onClick={onClick}
+      className={`py-2.5 sm:py-3 text-sm sm:text-base font-semibold rounded-xl border-[3px] transition-all active:scale-95 whitespace-pre-line leading-tight ${
+        selected
+          ? 'bg-[#FFD700] text-[#1a1aff] border-[#FFD700] shadow-lg'
+          : 'text-white border-[#FFD700] hover:bg-[#FFD700]/20'
+      }`}
+      style={{ fontFamily: "'Poppins', sans-serif" }}
+    >
+      {label}
+    </button>
+  );
+
   return (
-    <div className="size-full flex flex-col lg:flex-row bg-[#1a1aff] text-white p-4 sm:p-6 md:p-8 gap-6 md:gap-8 lg:gap-12 overflow-auto">
-      <div className="flex-1 flex items-center justify-center min-h-[300px] lg:min-h-0">
-        <div className="flex flex-col items-center gap-4 sm:gap-6">
-          <h2 className="text-2xl sm:text-3xl font-bold">Live Preview</h2>
+    <div className="size-full flex flex-col bg-[#1a1aff] text-white overflow-hidden">
+      {/* Header bar */}
+      <div className="w-full flex items-center gap-3 px-4 sm:px-6 md:px-8 py-4 sm:py-5 flex-shrink-0">
+        <div className="bg-[#FFD700] rounded-lg px-2.5 py-1.5 flex items-center justify-center">
+          <span className="text-sm font-bold text-[#1a1aff]">📷 fKa</span>
+        </div>
+        <p className="text-sm sm:text-base text-white/80" style={{ fontFamily: "'Poppins', sans-serif" }}>
+          Photobooth by <span className="text-[#FFD700] font-bold">fotoKAN</span> – bring the moment with you
+        </p>
+      </div>
+
+      {/* Main content */}
+      <div className="flex-1 flex flex-col lg:flex-row items-center lg:items-stretch gap-6 md:gap-8 lg:gap-10 px-4 sm:px-6 md:px-8 pb-6 overflow-auto">
+        {/* Left: Photo Strip Preview */}
+        <div className="flex items-center justify-center lg:w-[35%] xl:w-[30%] flex-shrink-0">
           <PhotoStrip background={selectedBackground} sticker={selectedSticker} />
         </div>
-      </div>
-      <div className="w-full lg:w-[450px] xl:w-[550px] flex flex-col gap-6 sm:gap-8 md:gap-10 py-6 sm:py-8 md:py-12 overflow-y-auto">
-        <div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-3">Background</h2>
-          <p className="text-xl sm:text-2xl text-[#FFD700] mb-6 sm:mb-8">Special event</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-            {backgrounds.map((bg) => (
-              <button
-                key={bg.name}
-                onClick={() => setSelectedBackground(bg.name)}
-                className={`px-4 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-base sm:text-lg md:text-xl font-bold rounded-xl sm:rounded-2xl border-3 sm:border-4 transition-all active:scale-95 ${
-                  selectedBackground === bg.name
-                    ? 'bg-[#FFD700] text-[#1a1aff] border-[#FFD700] scale-105 shadow-lg'
-                    : 'text-white border-[#FFD700] hover:bg-[#FFD700]/20'
-                }`}
-              >
-                {bg.label}
-              </button>
-            ))}
+
+        {/* Center: Frame Color & Sticker options */}
+        <div className="flex-1 flex flex-col gap-4 sm:gap-5 min-w-0 overflow-y-auto">
+          {/* Frame Color */}
+          <div>
+            <h2
+              className="text-2xl sm:text-3xl md:text-4xl font-normal mb-3 sm:mb-4 text-center lg:text-left"
+              style={{ fontFamily: "'Oilvare Base', sans-serif" }}
+            >
+              Frame Color
+            </h2>
+            <div className="grid grid-cols-3 gap-2.5 sm:gap-3 max-w-md mx-auto lg:mx-0">
+              {backgrounds.map((bg) => (
+                <OptionButton
+                  key={bg.name}
+                  selected={selectedBackground === bg.name}
+                  label={bg.label}
+                  onClick={() => setSelectedBackground(bg.name)}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Sticker */}
+          <div>
+            <h2
+              className="text-2xl sm:text-3xl md:text-4xl font-normal mb-3 sm:mb-4 text-center lg:text-left"
+              style={{ fontFamily: "'Oilvare Base', sans-serif" }}
+            >
+              Sticker
+            </h2>
+            <div className="grid grid-cols-3 gap-2.5 sm:gap-3 max-w-md mx-auto lg:mx-0">
+              {stickers.map((sticker) => (
+                <OptionButton
+                  key={sticker.name}
+                  selected={selectedSticker === sticker.name}
+                  label={sticker.label}
+                  onClick={() => setSelectedSticker(sticker.name)}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
-        <div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 sm:mb-3">Sticker</h2>
-          <p className="text-xl sm:text-2xl text-[#FFD700] mb-6 sm:mb-8">Special event</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-            {stickers.map((sticker) => (
-              <button
-                key={sticker.name}
-                onClick={() => setSelectedSticker(sticker.name)}
-                className={`px-4 sm:px-6 md:px-8 py-3 sm:py-4 md:py-5 text-base sm:text-lg md:text-xl font-bold rounded-xl sm:rounded-2xl border-3 sm:border-4 transition-all active:scale-95 ${
-                  selectedSticker === sticker.name
-                    ? 'bg-[#FFD700] text-[#1a1aff] border-[#FFD700] scale-105 shadow-lg'
-                    : 'text-white border-[#FFD700] hover:bg-[#FFD700]/20'
-                }`}
-              >
-                {sticker.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="flex justify-end mt-2 sm:mt-4">
+        {/* Right: Next button */}
+        <div className="flex items-center justify-center lg:w-auto flex-shrink-0">
           <button
             onClick={() => navigate('/print')}
-            className="px-12 sm:px-16 md:px-20 py-5 sm:py-6 md:py-7 text-2xl sm:text-3xl md:text-4xl font-bold text-white border-4 sm:border-5 md:border-[6px] border-[#FFD700] rounded-full hover:bg-[#FFD700] hover:text-[#1a1aff] transition-all active:scale-95 shadow-xl"
+            className="px-12 sm:px-14 md:px-16 py-4 sm:py-5 text-xl sm:text-2xl md:text-3xl font-semibold text-white border-[3px] sm:border-4 border-[#FFD700] rounded-2xl hover:bg-[#FFD700] hover:text-[#1a1aff] transition-all active:scale-95"
+            style={{ fontFamily: "'Poppins', sans-serif" }}
           >
             Next
           </button>
