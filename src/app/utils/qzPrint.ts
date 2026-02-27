@@ -9,7 +9,6 @@
  *   2×3         →  9.5 cm × 15 cm (≈ 3.74 in × 5.91 in)
  */
 import qz from 'qz-tray';
-import { apiFetch } from './api';
 
 /* ── Security: Certificate & Signing ──────────────────────── */
 
@@ -23,34 +22,35 @@ let securityConfigured = false;
 function configureQZSecurity(): void {
   if (securityConfigured) return;
 
-  qz.security.setCertificatePromise(
-    (resolve: (cert: string) => void, reject: (err: Error) => void) => {
-      apiFetch('/api/qz/cert')
-        .then((resp) => {
-          if (!resp.ok) throw new Error('Failed to fetch QZ certificate');
-          return resp.text();
-        })
-        .then(resolve)
-        .catch(reject);
-    }
-  );
+  // Certificate promise — matches official QZ Tray demo pattern
+  qz.security.setCertificatePromise(function (resolve: (cert: string) => void, reject: (err: any) => void) {
+    fetch('/api/qz/cert', { cache: 'no-store', headers: { 'Content-Type': 'text/plain' } })
+      .then(function (data) {
+        if (data.ok) {
+          resolve(data.text());
+        } else {
+          reject(data.text());
+        }
+      });
+  });
 
+  // Signature algorithm — must match backend (SHA512 with RSA)
   qz.security.setSignatureAlgorithm('SHA512');
 
-  qz.security.setSignaturePromise(
-    (toSign: string) => (resolve: (sig: string) => void, reject: (err: Error) => void) => {
-      apiFetch('/api/qz/sign', {
-        method: 'POST',
-        body: JSON.stringify({ request: toSign }),
-      })
-        .then((resp) => {
-          if (!resp.ok) throw new Error('Failed to sign QZ request');
-          return resp.json();
-        })
-        .then((data: { signature: string }) => resolve(data.signature))
-        .catch(reject);
-    }
-  );
+  // Signature promise — matches official QZ Tray demo pattern
+  // Backend returns plain text base64 signature
+  qz.security.setSignaturePromise(function (toSign: string) {
+    return function (resolve: (sig: string) => void, reject: (err: any) => void) {
+      fetch('/api/qz/sign?request=' + toSign, { cache: 'no-store', headers: { 'Content-Type': 'text/plain' } })
+        .then(function (data) {
+          if (data.ok) {
+            resolve(data.text());
+          } else {
+            reject(data.text());
+          }
+        });
+    };
+  });
 
   securityConfigured = true;
 }
