@@ -25,7 +25,7 @@ export function PhotoboothProvider({ children }: { children: ReactNode }) {
   const [capturedPhotos, setCapturedPhotos] = useState<string[]>([]);
   const [selectedBackground, setSelectedBackground] = useState('yellow');
   const [selectedSticker, setSelectedSticker] = useState('none');
-  const [printQuantity, setPrintQuantity] = useState(2);
+  const [printQuantity, setPrintQuantity] = useState(1);
   const [stripDataUrl, setStripDataUrl] = useState('');
 
   const addCapturedPhoto = (photo: string) => {
@@ -37,7 +37,7 @@ export function PhotoboothProvider({ children }: { children: ReactNode }) {
     setCapturedPhotos([]);
     setSelectedBackground('yellow');
     setSelectedSticker('none');
-    setPrintQuantity(2);
+    setPrintQuantity(1);
     setStripDataUrl('');
   };
 

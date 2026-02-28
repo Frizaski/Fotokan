@@ -19,6 +19,9 @@ export default defineConfig({
 
   // Proxy API requests to the backend during development
   server: {
+    // Allow external access (needed for ngrok / testing on other devices)
+    host: true,
+    allowedHosts: ['.ngrok-free.app', '.ngrok.io'],
     proxy: {
       '/api': {
         target: 'http://localhost:5000',

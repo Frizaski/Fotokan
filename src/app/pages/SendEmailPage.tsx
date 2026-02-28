@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router';
 import { usePhotobooth } from '../context/PhotoboothContext';
 import PhotoStrip from '../components/PhotoStrip';
 import GifPreview from '../components/GifPreview';
+import { apiFetch } from '../utils/api';
 // @ts-ignore
 import gifshot from 'gifshot';
 
@@ -12,6 +13,7 @@ export default function SendEmailPage() {
   const [gifUrl, setGifUrl] = useState<string>('');
   const [isGeneratingGif, setIsGeneratingGif] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState<string>('');
   const [gifReady, setGifReady] = useState(false);
   const [photosForPreview, setPhotosForPreview] = useState<string[]>([]);
   const { selectedBackground, selectedSticker, capturedPhotos } = usePhotobooth();
@@ -74,34 +76,30 @@ export default function SendEmailPage() {
     setGifReady(false);
     console.log(`Starting GIF generation with ${photos.length} photos`);
     
-    // Simulate GIF generation time for better UX (2 seconds)
-    setTimeout(() => {
-      setIsGeneratingGif(false);
-      setGifReady(true);
-      console.log('GIF preview ready');
-    }, 2000);
-    
     try {
       // Use gifshot library to create animated GIF for email attachment
+      // frameDuration unit: 1/10th of a second. 10 = 1s per frame.
+      // Preview cycles every 1000ms, so GIF should match.
       gifshot.createGIF({
         images: photos,
         gifWidth: 600,
         gifHeight: 450,
-        interval: 1, // 1 second per frame (0.8-1.2 seconds as required)
-        numFrames: photos.length,
-        frameDuration: 10, // 1 second = 10 * 0.1s
-        sampleInterval: 10,
+        frameDuration: 10, // 10 × 0.1s = 1 second per frame (matches preview)
         numWorkers: 2,
       }, (obj: any) => {
         if (!obj.error) {
           setGifUrl(obj.image);
-          console.log('GIF file generated successfully for email');
+          setIsGeneratingGif(false);
+          setGifReady(true);
+          console.log('GIF generated successfully');
         } else {
           console.error('GIF generation error:', obj.error);
+          setIsGeneratingGif(false);
         }
       });
     } catch (error) {
       console.error('Error generating GIF:', error);
+      setIsGeneratingGif(false);
     }
   };
 
@@ -118,20 +116,52 @@ export default function SendEmailPage() {
       return;
     }
 
+    if (!gifUrl) {
+      alert('GIF is not ready yet, please wait...');
+      return;
+    }
+
     setIsSending(true);
+    setSendError('');
     
-    // Simulate email sending with delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // Mock email sending
-    console.log(`Sending strip and GIF to: ${email}`);
-    console.log('Strip background:', selectedBackground);
-    console.log('Strip sticker:', selectedSticker);
-    console.log('GIF URL:', gifUrl);
-    
-    setIsSending(false);
-    alert(`Photo strip and GIF sent to ${email}!`);
-    navigate('/goodbye');
+    try {
+      // Capture the photo strip canvas as base64 (optional attachment)
+      let stripBase64: string | undefined;
+      if (stripRef.current) {
+        const canvas = stripRef.current.querySelector('canvas');
+        if (canvas) {
+          stripBase64 = canvas.toDataURL('image/png');
+        }
+      }
+
+      const response = await apiFetch('/api/email/send', {
+        method: 'POST',
+        body: JSON.stringify({
+          email,
+          gifBase64: gifUrl,
+          stripBase64,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send email');
+      }
+
+      console.log('Email sent successfully:', data);
+      if (data.previewUrl) {
+        console.log('Ethereal preview:', data.previewUrl);
+      }
+
+      navigate('/goodbye');
+    } catch (err: any) {
+      console.error('Error sending email:', err);
+      setSendError(err.message || 'Failed to send email. Please try again.');
+      alert(err.message || 'Failed to send email. Please try again.');
+    } finally {
+      setIsSending(false);
+    }
   };
 
   const keys = [

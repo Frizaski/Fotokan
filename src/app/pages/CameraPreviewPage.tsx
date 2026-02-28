@@ -84,6 +84,14 @@ export default function CameraPreviewPage() {
     }
   };
 
+  // When stream changes, ensure the video element gets it
+  useEffect(() => {
+    if (stream && videoRef.current && videoRef.current.srcObject !== stream) {
+      videoRef.current.srcObject = stream;
+      videoRef.current.play().catch(() => {});
+    }
+  }, [stream]);
+
   useEffect(() => {
     const initCamera = async () => {
       const permState = await checkPermissions();
@@ -96,8 +104,9 @@ export default function CameraPreviewPage() {
         setPermissionDenied(true);
         setError('Camera permission denied');
       } else {
-        // Permission prompt needed, show button to request
-        setShowPermissionPrompt(true);
+        // Permission state is 'prompt' — still try to request camera
+        // so the browser shows its built-in permission dialog automatically
+        setupCamera();
       }
     };
 
