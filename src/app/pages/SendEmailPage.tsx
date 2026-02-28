@@ -16,7 +16,14 @@ export default function SendEmailPage() {
   const [sendError, setSendError] = useState<string>('');
   const [gifReady, setGifReady] = useState(false);
   const [photosForPreview, setPhotosForPreview] = useState<string[]>([]);
-  const { selectedBackground, selectedSticker, capturedPhotos } = usePhotobooth();
+  const { selectedBackground, selectedSticker, capturedPhotos, photoCount } = usePhotobooth();
+  const [specialFrames, setSpecialFrames] = useState([]);
+  const [specialStickers, setSpecialStickers] = useState([]);
+
+  useEffect(() => {
+    apiFetch('/api/special-frames').then(r => r.json()).then(setSpecialFrames).catch(() => {});
+    apiFetch('/api/special-stickers').then(r => r.json()).then(setSpecialStickers).catch(() => {});
+  }, []);
   const stripRef = useRef<HTMLDivElement>(null);
 
   // Generate GIF when component mounts
@@ -134,12 +141,19 @@ export default function SendEmailPage() {
         }
       }
 
+      // Ambil semua foto hasil fotobooth sesuai jumlah photoCount
+      let photoBase64s: string[] = [];
+      if (capturedPhotos && capturedPhotos.length > 0) {
+        photoBase64s = capturedPhotos.slice(0, photoCount);
+      }
+
       const response = await apiFetch('/api/email/send', {
         method: 'POST',
         body: JSON.stringify({
           email,
           gifBase64: gifUrl,
           stripBase64,
+          photoBase64s,
         }),
       });
 
@@ -269,7 +283,7 @@ export default function SendEmailPage() {
           {/* Photo Strip Preview */}
           <div className="flex flex-col items-center gap-3 sm:gap-4">
             <div ref={stripRef} className="scale-75 sm:scale-90 md:scale-100 border-[8px] sm:border-[10px] border-[#FFD700] rounded-lg p-2 bg-white/5">
-              <PhotoStrip background={selectedBackground} sticker={selectedSticker} />
+              <PhotoStrip background={selectedBackground} sticker={selectedSticker} specialFrames={specialFrames} specialStickers={specialStickers} />
             </div>
             <div className="text-center bg-white/10 backdrop-blur-sm px-4 sm:px-6 py-2 sm:py-3 rounded-lg border-[4px] border-[#FFD700]">
               <p className="text-lg sm:text-xl font-bold">Photo Strip</p>
