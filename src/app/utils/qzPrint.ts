@@ -9,6 +9,7 @@
  *   2×3         →  9.5 cm × 15 cm (≈ 3.74 in × 5.91 in)
  */
 import qz from 'qz-tray';
+import { API_BASE_URL } from './api';
 
 /* ── Security: Certificate & Signing ──────────────────────── */
 
@@ -24,7 +25,7 @@ function configureQZSecurity(): void {
 
   // Certificate promise — matches official QZ Tray demo pattern
   qz.security.setCertificatePromise(function (resolve: (cert: string) => void, reject: (err: any) => void) {
-    fetch('/api/qz/cert', { cache: 'no-store', headers: { 'Content-Type': 'text/plain' } })
+    fetch(`${API_BASE_URL}/api/qz/cert`, { cache: 'no-store', headers: { 'Content-Type': 'text/plain' } })
       .then(function (data) {
         if (data.ok) {
           resolve(data.text());
@@ -41,7 +42,7 @@ function configureQZSecurity(): void {
   // Backend returns plain text base64 signature
   qz.security.setSignaturePromise(function (toSign: string) {
     return function (resolve: (sig: string) => void, reject: (err: any) => void) {
-      fetch('/api/qz/sign?request=' + toSign, { cache: 'no-store', headers: { 'Content-Type': 'text/plain' } })
+      fetch(`${API_BASE_URL}/api/qz/sign?request=` + toSign, { cache: 'no-store', headers: { 'Content-Type': 'text/plain' } })
         .then(function (data) {
           if (data.ok) {
             resolve(data.text());
