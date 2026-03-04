@@ -160,7 +160,9 @@ export default function SendEmailPage() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to send email');
+        const detail = data.details || '';
+        const code = data.code || '';
+        throw new Error(`${data.error || 'Failed to send email'}${detail ? ` (${detail})` : ''}${code ? ` [${code}]` : ''}`);
       }
 
       console.log('Email sent successfully:', data);

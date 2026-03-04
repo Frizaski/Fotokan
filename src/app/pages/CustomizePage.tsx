@@ -263,12 +263,7 @@ export default function CustomizePage() {
       label: stk.name,
       available: true,
     })),
-    { name: 'star', label: 'Star', available: true },
-    { name: 'heart', label: 'Heart', available: true },
-    { name: 'bubble', label: 'Bubble', available: true },
-    { name: 'ribbon', label: 'Ribbon', available: true },
-    { name: 'cloud', label: 'Cloud', available: true },
-    { name: 'none', label: 'No sticker', available: true },
+
   ];
 
   const OptionButton = ({
