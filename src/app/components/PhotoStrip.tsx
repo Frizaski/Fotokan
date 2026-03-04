@@ -1,6 +1,7 @@
 import { forwardRef } from 'react';
 import { usePhotobooth } from '../context/PhotoboothContext';
 import { Star, Heart, Cloud } from 'lucide-react';
+import { API_BASE_URL } from '../utils/api';
 
 interface SpecialFrame {
   id: string;
@@ -69,9 +70,9 @@ const PhotoStrip = forwardRef<HTMLDivElement, PhotoStripProps>(function PhotoStr
 
   const getFrameDesignUrl = () => {
     if (!activeFrame) return '';
-    if (photoCount === 3) return activeFrame.design_1x3;
-    if (photoCount === 4) return activeFrame.design_1x4;
-    return activeFrame.design_2x3;
+    if (photoCount === 3) return `${API_BASE_URL}${activeFrame.design_1x3}`;
+    if (photoCount === 4) return `${API_BASE_URL}${activeFrame.design_1x4}`;
+    return `${API_BASE_URL}${activeFrame.design_2x3}`;
   };
 
   const bgColor = isSpecialFrame ? '#333' : (backgroundColors[background] || '#FFA500');
@@ -84,9 +85,9 @@ const PhotoStrip = forwardRef<HTMLDivElement, PhotoStripProps>(function PhotoStr
 
   const getStickerDesignUrl = () => {
     if (!activeSticker) return '';
-    if (photoCount === 3) return activeSticker.design_1x3;
-    if (photoCount === 4) return activeSticker.design_1x4;
-    return activeSticker.design_2x3;
+    if (photoCount === 3) return `${API_BASE_URL}${activeSticker.design_1x3}`;
+    if (photoCount === 4) return `${API_BASE_URL}${activeSticker.design_1x4}`;
+    return `${API_BASE_URL}${activeSticker.design_2x3}`;
   };
   const stickerDesignUrl = getStickerDesignUrl();
 

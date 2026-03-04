@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router';
 import { usePhotobooth } from '../context/PhotoboothContext';
 import PhotoStrip from '../components/PhotoStrip';
 import { useRef, useState, useEffect, useCallback } from 'react';
-import { apiFetch } from '../utils/api';
+import { apiFetch, API_BASE_URL } from '../utils/api';
 
 interface SpecialFrame {
   id: string;
@@ -75,15 +75,15 @@ async function renderStripToCanvas(
 
   const getFrameUrl = () => {
     if (!activeFrame) return '';
-    if (photoCount === 3) return activeFrame.design_1x3;
-    if (photoCount === 4) return activeFrame.design_1x4;
-    return activeFrame.design_2x3;
+    if (photoCount === 3) return `${API_BASE_URL}${activeFrame.design_1x3}`;
+    if (photoCount === 4) return `${API_BASE_URL}${activeFrame.design_1x4}`;
+    return `${API_BASE_URL}${activeFrame.design_2x3}`;
   };
   const getStickerUrl = () => {
     if (!activeSticker) return '';
-    if (photoCount === 3) return activeSticker.design_1x3;
-    if (photoCount === 4) return activeSticker.design_1x4;
-    return activeSticker.design_2x3;
+    if (photoCount === 3) return `${API_BASE_URL}${activeSticker.design_1x3}`;
+    if (photoCount === 4) return `${API_BASE_URL}${activeSticker.design_1x4}`;
+    return `${API_BASE_URL}${activeSticker.design_2x3}`;
   };
 
   const canvas = document.createElement('canvas');
