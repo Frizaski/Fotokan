@@ -35,6 +35,11 @@ export default function GoodbyePage() {
         Ayo foto lagi
       </button>
       </div>
+      {/* Footer */}
+      <div className="w-full flex flex-col items-center gap-1 pb-4 text-white/70 text-sm flex-shrink-0" style={{ fontFamily: "'Poppins', sans-serif" }}>
+        <span>📧 fotokans@gmail.com</span>
+        <span>📸 @fotokans_</span>
+      </div>
     </div>
   );
 }

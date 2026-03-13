@@ -24,11 +24,11 @@ export default defineConfig({
     allowedHosts: ['.ngrok-free.app', '.ngrok.io'],
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'https://fotokan.bgeodev.cloud/',
         changeOrigin: true,
       },
       '/uploads': {
-        target: 'http://localhost:5000',
+        target: 'https://fotokan.bgeodev.cloud/',
         changeOrigin: true,
       },
     },

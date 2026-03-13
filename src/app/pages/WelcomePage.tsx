@@ -33,8 +33,11 @@ export default function WelcomePage() {
         </button>
       </div>
 
-      {/* Spacer to balance header */}
-      <div className="mb-auto" />
+      {/* Footer */}
+      <div className="w-full flex flex-col items-center gap-1 pb-2 text-white/70 text-sm" style={{ fontFamily: "'Poppins', sans-serif" }}>
+        <span>📧 fotokans@gmail.com</span>
+        <span>📸 @fotokans_</span>
+      </div>
     </div>
   );
 }
