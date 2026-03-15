@@ -5,7 +5,9 @@ import {
   useEffect,
   ReactNode,
 } from "react";
-import { apiFetch } from "../utils/api";
+
+const STORAGE_KEY = "fotokan_auth";
+const CORRECT_PIN = import.meta.env.VITE_PIN as string;
 
 interface AuthState {
   isAuthenticated: boolean | null; // null = loading
@@ -18,28 +20,26 @@ const AuthContext = createContext<AuthState | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
-  // On mount, check if the device already has a valid cookie
+  // On mount, restore session from localStorage
   useEffect(() => {
-    apiFetch("/api/auth/check")
-      .then((res) => res.json())
-      .then((data) => setIsAuthenticated(data.authenticated === true))
-      .catch(() => setIsAuthenticated(false));
+    const stored = localStorage.getItem(STORAGE_KEY);
+    setIsAuthenticated(stored === "true");
   }, []);
 
   const verifyPin = async (pin: string) => {
-    const res = await apiFetch("/api/auth/verify-pin", {
-      method: "POST",
-      body: JSON.stringify({ pin }),
-    });
-    const data = await res.json();
-    if (data.success) {
-      setIsAuthenticated(true);
+    if (!CORRECT_PIN) {
+      return { success: false, message: "PIN belum dikonfigurasi" };
     }
-    return data;
+    if (pin === CORRECT_PIN) {
+      localStorage.setItem(STORAGE_KEY, "true");
+      setIsAuthenticated(true);
+      return { success: true, message: "OK" };
+    }
+    return { success: false, message: "PIN salah" };
   };
 
   const logout = async () => {
-    await apiFetch("/api/auth/logout", { method: "POST" });
+    localStorage.removeItem(STORAGE_KEY);
     setIsAuthenticated(false);
   };
 

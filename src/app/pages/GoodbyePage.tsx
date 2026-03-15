@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router';
+import { Mail, Instagram } from 'lucide-react';
 import { usePhotobooth } from '../context/PhotoboothContext';
 
 export default function GoodbyePage() {
@@ -36,9 +37,15 @@ export default function GoodbyePage() {
       </button>
       </div>
       {/* Footer */}
-      <div className="w-full flex flex-col items-center gap-1 pb-4 text-white/70 text-sm flex-shrink-0" style={{ fontFamily: "'Poppins', sans-serif" }}>
-        <span>📧 fotokans@gmail.com</span>
-        <span>📸 @fotokans_</span>
+      <div className="w-full flex flex-col items-center gap-2 pb-4 text-white/80 text-base sm:text-lg flex-shrink-0" style={{ fontFamily: "'Poppins', sans-serif" }}>
+        <span className="inline-flex items-center gap-2">
+          <Mail className="h-5 w-5 text-[#FFD700]" aria-hidden="true" />
+          <span>fotoKAN3@gmail.com</span>
+        </span>
+        <span className="inline-flex items-center gap-2">
+          <Instagram className="h-5 w-5 text-[#FFD700]" aria-hidden="true" />
+          <span>@fotokans_</span>
+        </span>
       </div>
     </div>
   );

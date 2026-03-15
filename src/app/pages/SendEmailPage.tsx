@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { usePhotobooth } from '../context/PhotoboothContext';
 import PhotoStrip from '../components/PhotoStrip';
@@ -17,7 +17,6 @@ export default function SendEmailPage() {
   const [gifReady, setGifReady] = useState(false);
   const [photosForPreview, setPhotosForPreview] = useState<string[]>([]);
   const { selectedBackground, selectedSticker, capturedPhotos } = usePhotobooth();
-  const stripRef = useRef<HTMLDivElement>(null);
 
   // Generate GIF when component mounts
   useEffect(() => {
@@ -82,10 +81,11 @@ export default function SendEmailPage() {
       // Preview cycles every 1000ms, so GIF should match.
       gifshot.createGIF({
         images: photos,
-        gifWidth: 600,
-        gifHeight: 450,
+        gifWidth: 300,
+        gifHeight: 225,
         frameDuration: 10, // 10 × 0.1s = 1 second per frame (matches preview)
         numWorkers: 2,
+        sampleInterval: 10,
       }, (obj: any) => {
         if (!obj.error) {
           setGifUrl(obj.image);
@@ -101,6 +101,24 @@ export default function SendEmailPage() {
       console.error('Error generating GIF:', error);
       setIsGeneratingGif(false);
     }
+  };
+
+  // Resize a photo to max 400px wide at quality 0.65 to reduce payload size
+  const resizePhotoForEmail = (dataUrl: string): Promise<string> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxW = 400;
+        const scale = Math.min(1, maxW / img.width);
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext('2d');
+        ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.65));
+      };
+      img.src = dataUrl;
+    });
   };
 
   const handleSend = async () => {
@@ -125,29 +143,32 @@ export default function SendEmailPage() {
     setSendError('');
     
     try {
-      // Capture the photo strip canvas as base64 (optional attachment)
-      let stripBase64: string | undefined;
-      if (stripRef.current) {
-        const canvas = stripRef.current.querySelector('canvas');
-        if (canvas) {
-          stripBase64 = canvas.toDataURL('image/png');
-        }
-      }
+      // Resize individual photos to reduce payload size before sending
+      const resizedPhotos = await Promise.all(photosForPreview.map(resizePhotoForEmail));
 
       const response = await apiFetch('/api/email/send', {
         method: 'POST',
         body: JSON.stringify({
           email,
           gifBase64: gifUrl,
-          stripBase64,
+          photos: resizedPhotos,
         }),
       });
 
-      const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to send email');
+        const text = await response.text();
+        let message = `Gagal mengirim email (kode ${response.status}). Periksa konfigurasi server.`;
+        if (response.status === 405) {
+          message = 'Layanan email belum aktif di server (405). Hubungi admin server.';
+        }
+        try {
+          const json = JSON.parse(text);
+          if (json.error) message = json.error;
+        } catch { /* response bukan JSON (misal HTML nginx), pakai pesan default */ }
+        throw new Error(message);
       }
+
+      const data = await response.json();
 
       console.log('Email sent successfully:', data);
       if (data.previewUrl) {
@@ -156,9 +177,8 @@ export default function SendEmailPage() {
 
       navigate('/goodbye');
     } catch (err: any) {
-      console.error('Error sending email:', err);
-      setSendError(err.message || 'Failed to send email. Please try again.');
-      alert(err.message || 'Failed to send email. Please try again.');
+      // Keep UI clean on kiosk: show inline error without noisy stack traces.
+      setSendError(err.message || 'Gagal mengirim email. Coba lagi.');
     } finally {
       setIsSending(false);
     }
@@ -241,13 +261,34 @@ export default function SendEmailPage() {
             </div>
           </div>
         </div>
-        <button
-          onClick={handleSend}
-          disabled={isSending || isGeneratingGif}
-          className="px-12 sm:px-16 md:px-20 py-4 sm:py-5 md:py-6 text-2xl sm:text-3xl md:text-4xl font-bold text-white border-[8px] sm:border-[10px] border-[#FFD700] rounded-full hover:bg-[#FFD700] hover:text-[#1a1aff] transition-colors mt-2 sm:mt-4 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isSending ? 'Sending...' : isGeneratingGif ? 'Preparing GIF...' : 'Send'}
-        </button>
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-2 sm:mt-4">
+          <button
+            onClick={handleSend}
+            disabled={isSending || isGeneratingGif}
+            className="px-12 sm:px-16 md:px-20 py-4 sm:py-5 md:py-6 text-2xl sm:text-3xl md:text-4xl font-bold text-white border-[8px] sm:border-[10px] border-[#FFD700] rounded-full hover:bg-[#FFD700] hover:text-[#1a1aff] transition-colors active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSending ? 'Mengirim...' : isGeneratingGif ? 'Menyiapkan GIF...' : 'Kirim'}
+          </button>
+          <button
+            onClick={() => navigate('/goodbye')}
+            disabled={isSending}
+            className="px-10 sm:px-14 py-4 sm:py-5 md:py-6 text-xl sm:text-2xl md:text-3xl font-bold text-white/70 border-[6px] sm:border-[8px] border-white/30 rounded-full hover:border-white hover:text-white transition-colors active:scale-95 disabled:opacity-50"
+          >
+            Lewati
+          </button>
+        </div>
+
+        {sendError && (
+          <div className="flex flex-col items-center gap-2 max-w-lg">
+            <p className="text-red-300 text-sm sm:text-base text-center">{sendError}</p>
+            <button
+              onClick={() => navigate('/goodbye')}
+              className="text-white/70 underline text-sm hover:text-white transition-colors"
+            >
+              Lewati dan lanjutkan →
+            </button>
+          </div>
+        )}
       </div>
 
       {/* RIGHT COLUMN: Strip Preview and GIF Preview (Side by Side) */}
@@ -268,7 +309,7 @@ export default function SendEmailPage() {
 
           {/* Photo Strip Preview */}
           <div className="flex flex-col items-center gap-3 sm:gap-4">
-            <div ref={stripRef} className="scale-75 sm:scale-90 md:scale-100 border-[8px] sm:border-[10px] border-[#FFD700] rounded-lg p-2 bg-white/5">
+            <div className="scale-75 sm:scale-90 md:scale-100 border-[8px] sm:border-[10px] border-[#FFD700] rounded-lg p-2 bg-white/5">
               <PhotoStrip background={selectedBackground} sticker={selectedSticker} />
             </div>
             <div className="text-center bg-white/10 backdrop-blur-sm px-4 sm:px-6 py-2 sm:py-3 rounded-lg border-[4px] border-[#FFD700]">

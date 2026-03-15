@@ -3,6 +3,8 @@ import path from 'path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 
+const devApiTarget = process.env.VITE_DEV_PROXY_TARGET || 'https://api-fotokan.bgeodev.cloud'
+
 export default defineConfig({
   plugins: [
     // The React and Tailwind plugins are both required for Make, even if
@@ -24,11 +26,11 @@ export default defineConfig({
     allowedHosts: ['.ngrok-free.app', '.ngrok.io'],
     proxy: {
       '/api': {
-        target: 'https://fotokan.bgeodev.cloud/',
+        target: devApiTarget,
         changeOrigin: true,
       },
       '/uploads': {
-        target: 'https://fotokan.bgeodev.cloud/',
+        target: devApiTarget,
         changeOrigin: true,
       },
     },

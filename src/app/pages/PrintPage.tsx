@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react';
 import { apiFetch } from '../utils/api';
 import {
   connectQZ,
-  isQZConnected,
   listPrinters,
   getDefaultPrinter,
   printStrip,
@@ -59,35 +58,6 @@ export default function PrintPage() {
   useEffect(() => {
     apiFetch('/api/special-frames').then(r => r.json()).then(setSpecialFrames).catch(() => {});
     apiFetch('/api/special-stickers').then(r => r.json()).then(setSpecialStickers).catch(() => {});
-  }, []);
-
-  // Connect to QZ Tray on mount
-  useEffect(() => {
-    let cancelled = false;
-    const init = async () => {
-      try {
-        setPrintStatus('connecting');
-        await connectQZ();
-        if (cancelled) return;
-        setQzConnected(true);
-
-        const allPrinters = await listPrinters();
-        if (cancelled) return;
-        setPrinters(allPrinters);
-
-        const defaultPrinter = await getDefaultPrinter();
-        if (cancelled) return;
-        setSelectedPrinter(defaultPrinter);
-        setPrintStatus('idle');
-      } catch (err) {
-        if (cancelled) return;
-        console.warn('QZ Tray connection failed:', err);
-        setQzConnected(false);
-        setPrintStatus('idle');
-      }
-    };
-    init();
-    return () => { cancelled = true; };
   }, []);
 
   const handlePrint = async () => {

@@ -23,8 +23,8 @@ const PhotoboothContext = createContext<PhotoboothState | undefined>(undefined);
 export function PhotoboothProvider({ children }: { children: ReactNode }) {
   const [photoCount, setPhotoCount] = useState(4);
   const [capturedPhotos, setCapturedPhotos] = useState<string[]>([]);
-  const [selectedBackground, setSelectedBackground] = useState('yellow');
-  const [selectedSticker, setSelectedSticker] = useState('none');
+  const [selectedBackground, setSelectedBackground] = useState('none');
+  const [selectedSticker, setSelectedSticker] = useState('star');
   const [printQuantity, setPrintQuantity] = useState(1);
   const [stripDataUrl, setStripDataUrl] = useState('');
 
@@ -35,8 +35,8 @@ export function PhotoboothProvider({ children }: { children: ReactNode }) {
   const resetSession = () => {
     setPhotoCount(4);
     setCapturedPhotos([]);
-    setSelectedBackground('yellow');
-    setSelectedSticker('none');
+    setSelectedBackground('none');
+    setSelectedSticker('star');
     setPrintQuantity(1);
     setStripDataUrl('');
   };

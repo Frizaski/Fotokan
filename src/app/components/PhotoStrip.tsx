@@ -1,6 +1,6 @@
 import { forwardRef } from 'react';
 import { usePhotobooth } from '../context/PhotoboothContext';
-import { Star, Heart, Cloud } from 'lucide-react';
+import { Star } from 'lucide-react';
 
 interface SpecialFrame {
   id: string;
@@ -27,16 +27,10 @@ interface PhotoStripProps {
   specialStickers?: SpecialSticker[];
 }
 
-/*
-  Layout guide (matches ChoosePhotosPage proportions):
-  ─────────────────────────────────────
-  1×3 (3 photos): narrow strip, photos 1:1
-  1×4 (4 photos): narrow strip, photos 4:3 (landscape)
-  2×3 (6 photos): wide strip, 2-col grid, photos 1:1
-  ─────────────────────────────────────
-*/
-
-const PhotoStrip = forwardRef<HTMLDivElement, PhotoStripProps>(function PhotoStrip({ background, sticker, specialFrames = [], specialStickers = [] }, ref) {
+const PhotoStrip = forwardRef<HTMLDivElement, PhotoStripProps>(function PhotoStrip(
+  { background, sticker, specialFrames = [], specialStickers = [] },
+  ref,
+) {
   const { capturedPhotos, photoCount } = usePhotobooth();
 
   const backgroundColors: Record<string, string> = {
@@ -50,22 +44,16 @@ const PhotoStrip = forwardRef<HTMLDivElement, PhotoStripProps>(function PhotoStr
 
   const is2x3 = photoCount === 6;
   const stripWidth = is2x3 ? 380 : 220;
-  // Enforce print-correct proportions:
-  // 1x3, 1x4: 5cm × 15cm → ratio 1:3
-  // 2x3: 9.5cm × 15cm → ratio 19:30
   const stripHeight = is2x3 ? Math.round(stripWidth * (15 / 9.5)) : stripWidth * 3;
 
-  // Unified content padding (must be identical for both frame types)
-  // Standard frame: border 10px + padding 12px = 22px
-  // Special frame: no border, so padding = 22px
   const FRAME_BORDER = 10;
   const INNER_PAD = 12;
-  const CONTENT_PAD = FRAME_BORDER + INNER_PAD; // 22px total from edge to photo area
+  const CONTENT_PAD = FRAME_BORDER + INNER_PAD;
 
-  // Determine if using a special frame (background image)
   const isSpecialFrame = background.startsWith('special');
-  const specialSlot = isSpecialFrame ? parseInt(background.replace('special', ''), 10) : 0;
-  const activeFrame = specialFrames.find((f) => f.slot === specialSlot);
+  const isNoFrame = background === 'none';
+  const specialFrameSlot = isSpecialFrame ? parseInt(background.replace('special', ''), 10) : 0;
+  const activeFrame = specialFrames.find((f) => f.slot === specialFrameSlot);
 
   const getFrameDesignUrl = () => {
     if (!activeFrame) return '';
@@ -74,13 +62,12 @@ const PhotoStrip = forwardRef<HTMLDivElement, PhotoStripProps>(function PhotoStr
     return activeFrame.design_2x3;
   };
 
-  const bgColor = isSpecialFrame ? '#333' : (backgroundColors[background] || '#FFA500');
   const frameDesignUrl = getFrameDesignUrl();
+  const bgColor = isNoFrame || isSpecialFrame ? 'transparent' : (backgroundColors[background] || '#FFA500');
 
-  // Determine if using a special sticker (full-strip overlay)
   const isSpecialSticker = sticker.startsWith('special');
-  const stickerSlot = isSpecialSticker ? parseInt(sticker.replace('special', ''), 10) : 0;
-  const activeSticker = specialStickers.find((s) => s.slot === stickerSlot);
+  const specialStickerSlot = isSpecialSticker ? parseInt(sticker.replace('special', ''), 10) : 0;
+  const activeSticker = specialStickers.find((s) => s.slot === specialStickerSlot);
 
   const getStickerDesignUrl = () => {
     if (!activeSticker) return '';
@@ -88,18 +75,14 @@ const PhotoStrip = forwardRef<HTMLDivElement, PhotoStripProps>(function PhotoStr
     if (photoCount === 4) return activeSticker.design_1x4;
     return activeSticker.design_2x3;
   };
+
   const stickerDesignUrl = getStickerDesignUrl();
 
-  // Built-in sticker rendering (per-photo decorations)
-  const isBuiltinSticker = !isSpecialSticker && sticker !== 'none';
-
   const renderSticker = (index: number) => {
-    // Only render built-in stickers here; special stickers are full-strip overlays
-    if (!isBuiltinSticker) return null;
+    if (isSpecialSticker || sticker === 'none') return null;
 
     const stickerSize = is2x3 ? 28 : 36;
     const offset = is2x3 ? '4px' : '8px';
-
     const positions = [
       { top: offset, right: offset },
       { top: offset, left: offset },
@@ -117,40 +100,28 @@ const PhotoStrip = forwardRef<HTMLDivElement, PhotoStripProps>(function PhotoStr
     switch (sticker) {
       case 'star':
         return <Star style={style} size={stickerSize} fill="white" stroke="white" />;
-      case 'heart':
-        return <Heart style={style} size={stickerSize} fill="#ff69b4" stroke="white" strokeWidth={2} />;
-      case 'bubble':
+      case 'flower':
         return (
-          <div style={{ ...style, width: stickerSize, height: stickerSize, borderRadius: '50%', backgroundColor: 'white', border: '3px solid #87CEEB', opacity: 0.9 }} />
+          <div
+            style={{
+              ...style,
+              width: stickerSize,
+              height: stickerSize,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: `${stickerSize - 4}px`,
+              lineHeight: 1,
+            }}
+          >
+            🌸
+          </div>
         );
-      case 'ribbon':
-        return (
-          <div style={{ ...style, width: stickerSize + 10, height: Math.round(stickerSize * 0.4), backgroundColor: '#ff69b4', borderRadius: '4px', border: '2px solid white' }} />
-        );
-      case 'cloud':
-        return <Cloud style={style} size={stickerSize} fill="white" stroke="white" />;
       default:
         return null;
     }
   };
 
-  const PhotoCellFlex = ({ photo, index }: { photo: string; index: number }) => (
-    <div className="relative flex-1 min-h-0">
-      <div
-        className="border-[4px] border-white/90 overflow-hidden shadow-lg h-full"
-        style={{ backgroundColor: 'black' }}
-      >
-        <img
-          src={photo}
-          alt={`Photo ${index + 1}`}
-          className="w-full h-full object-cover"
-        />
-      </div>
-      {sticker !== 'none' && renderSticker(index)}
-    </div>
-  );
-
-  // Special sticker overlay — full-strip transparent PNG on top
   const StickerOverlay = () => {
     if (!isSpecialSticker || !activeSticker || !stickerDesignUrl) return null;
     return (
@@ -163,6 +134,15 @@ const PhotoStrip = forwardRef<HTMLDivElement, PhotoStripProps>(function PhotoStr
     );
   };
 
+  const PhotoCellFlex = ({ photo, index }: { photo: string; index: number }) => (
+    <div className="relative flex-1 min-h-0">
+      <div className="border-[4px] border-white/90 overflow-hidden shadow-lg h-full" style={{ backgroundColor: 'black' }}>
+        <img src={photo} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
+      </div>
+      {renderSticker(index)}
+    </div>
+  );
+
   const StripContent = () => (
     <div className="flex flex-col h-full">
       <div className="flex items-center justify-between mb-1 px-1 flex-shrink-0">
@@ -173,6 +153,7 @@ const PhotoStrip = forwardRef<HTMLDivElement, PhotoStripProps>(function PhotoStr
         </div>
         <span className="text-[8px] text-white/70 font-mono">KODAK PORTRA 400</span>
       </div>
+
       {is2x3 ? (
         <div className="grid grid-cols-2 gap-2 flex-1" style={{ gridAutoRows: '1fr' }}>
           {capturedPhotos.map((photo, index) => (
@@ -186,6 +167,7 @@ const PhotoStrip = forwardRef<HTMLDivElement, PhotoStripProps>(function PhotoStr
           ))}
         </div>
       )}
+
       <div className="flex items-center justify-between mt-1 px-1 flex-shrink-0">
         <div className="flex gap-1.5">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -193,23 +175,19 @@ const PhotoStrip = forwardRef<HTMLDivElement, PhotoStripProps>(function PhotoStr
           ))}
         </div>
       </div>
+
       <div className="mt-1 text-center bg-white/10 backdrop-blur-sm rounded py-0.5 flex-shrink-0">
         <p className="text-white text-[10px] font-bold tracking-wide">by fotoKAN</p>
       </div>
     </div>
   );
 
-  // Special frame with background design image
   if (isSpecialFrame && activeFrame && frameDesignUrl) {
     return (
-      <div
-        ref={ref}
-        className="relative overflow-hidden shadow-2xl"
-        style={{ width: stripWidth, height: stripHeight }}
-      >
+      <div ref={ref} className="relative overflow-hidden shadow-2xl" style={{ width: stripWidth, height: stripHeight }}>
         <img
           src={frameDesignUrl}
-          alt="Frame design"
+          alt={activeFrame.name}
           className="absolute inset-0 w-full h-full"
           style={{ zIndex: 0, objectFit: 'fill' }}
         />
@@ -221,7 +199,6 @@ const PhotoStrip = forwardRef<HTMLDivElement, PhotoStripProps>(function PhotoStr
     );
   }
 
-  // Standard solid-color background
   return (
     <div
       ref={ref}
@@ -230,8 +207,8 @@ const PhotoStrip = forwardRef<HTMLDivElement, PhotoStripProps>(function PhotoStr
         width: stripWidth,
         height: stripHeight,
         backgroundColor: bgColor,
-        border: `${FRAME_BORDER}px solid`,
-        borderColor: bgColor,
+        border: isNoFrame ? 'none' : `${FRAME_BORDER}px solid`,
+        borderColor: isNoFrame ? 'transparent' : bgColor,
       }}
     >
       <div className="h-full" style={{ padding: INNER_PAD }}>
