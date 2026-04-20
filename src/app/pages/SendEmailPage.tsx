@@ -16,7 +16,7 @@ export default function SendEmailPage() {
   const [sendError, setSendError] = useState<string>('');
   const [gifReady, setGifReady] = useState(false);
   const [photosForPreview, setPhotosForPreview] = useState<string[]>([]);
-  const { selectedBackground, selectedSticker, capturedPhotos } = usePhotobooth();
+  const { selectedBackground, selectedSticker, capturedPhotos, photoCount } = usePhotobooth();
 
   // Generate GIF when component mounts
   useEffect(() => {
@@ -76,13 +76,23 @@ export default function SendEmailPage() {
     console.log(`Starting GIF generation with ${photos.length} photos`);
     
     try {
+      // Calculate GIF dimensions based on photo aspect ratio
+      // Match the aspect ratio used in PhotoCapturePage
+      const photoCellRatio = photoCount === 4 ? 4 / 3 : 1; // 4 photos = 4:3, others = 1:1
+      
+      // Set GIF width and calculate height based on aspect ratio
+      const gifWidth = 400;
+      const gifHeight = Math.round(gifWidth / photoCellRatio);
+      
+      console.log(`GIF dimensions: ${gifWidth}x${gifHeight} (ratio: ${photoCellRatio})`);
+
       // Use gifshot library to create animated GIF for email attachment
       // frameDuration unit: 1/10th of a second. 10 = 1s per frame.
       // Preview cycles every 1000ms, so GIF should match.
       gifshot.createGIF({
         images: photos,
-        gifWidth: 300,
-        gifHeight: 225,
+        gifWidth: gifWidth,
+        gifHeight: gifHeight,
         frameDuration: 10, // 10 × 0.1s = 1 second per frame (matches preview)
         numWorkers: 2,
         sampleInterval: 10,
