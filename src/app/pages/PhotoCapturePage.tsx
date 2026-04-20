@@ -9,7 +9,7 @@ export default function PhotoCapturePage() {
   const { photoCount, capturedPhotos, setCapturedPhotos } = usePhotobooth();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [countdown, setCountdown] = useState(5);
+  const [countdown, setCountdown] = useState(10);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [flash, setFlash] = useState(false);
@@ -115,7 +115,7 @@ export default function PhotoCapturePage() {
         if (prev === 1) {
           // Use setTimeout to avoid state updates during render
           setTimeout(() => capturePhoto(), 0);
-          return 5;
+          return 10;
         }
         return prev - 1;
       });
