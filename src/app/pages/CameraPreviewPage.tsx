@@ -1,9 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { usePhotobooth } from '../context/PhotoboothContext';
 
 export default function CameraPreviewPage() {
   const navigate = useNavigate();
+  const { photoCount } = usePhotobooth();
   const videoRef = useRef<HTMLVideoElement>(null);
+  
+  // Camera aspect ratio matching photo cell ratio in PhotoStrip
+  const photoCellRatio = photoCount === 4 ? 176/148 : photoCount === 3 ? 176/200 : 164/180;
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [error, setError] = useState<string>('');
   const [permissionDenied, setPermissionDenied] = useState(false);
@@ -150,7 +155,15 @@ export default function CameraPreviewPage() {
       <div className="flex-1 flex flex-col lg:flex-row p-4 sm:p-6 md:p-8 gap-6 md:gap-8 lg:gap-12 overflow-auto min-h-0">
       <div className="flex-1 flex flex-col items-center justify-center gap-4 md:gap-6 min-h-0">
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center" style={{ fontFamily: "'Oilvare Base', sans-serif" }}>Camera Preview</h2>
-        <div className="relative w-full max-w-4xl aspect-video bg-black rounded-lg md:rounded-xl overflow-hidden border-6 md:border-8 border-[#FFD700] shadow-2xl">
+        <div
+          className="relative bg-black rounded-lg md:rounded-xl overflow-hidden border-6 md:border-8 border-[#FFD700] shadow-2xl"
+          style={{ 
+            width: '100%',
+            maxWidth: photoCount === 4 ? 'clamp(300px, 50vw, 480px)' : 'clamp(300px, 50vw, 360px)',
+            aspectRatio: photoCellRatio,
+            margin: '0 auto'
+          }}
+        >
           {showPermissionPrompt ? (
             <div className="absolute inset-0 flex items-center justify-center text-white bg-gradient-to-br from-[#1a1aff] to-[#0d0d80] p-4">
               <div className="text-center p-4 sm:p-6 md:p-8 max-w-2xl">

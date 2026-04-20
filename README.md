@@ -9,7 +9,7 @@ A touchscreen-optimized photobooth web application that allows users to take, cu
 1. **Welcome Screen** - Introduction with "PHOTOBOOTH by fotoKAN"
 2. **Choose Photos** - Select 3, 4, or 6 photos for your strip
 3. **Camera Preview** - Live camera preview before starting
-4. **Photo Capture** - Automatic photo capture with 5-second countdown
+4. **Photo Capture** - Automatic photo capture with 10-second countdown
 5. **Customize Strip** - Add backgrounds and stickers to your photos
 6. **Print Settings** - Choose how many copies to print
 7. **Send Email** - Enter email to receive digital copies (strip + GIF)

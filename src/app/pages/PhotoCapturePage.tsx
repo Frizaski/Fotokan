@@ -9,15 +9,24 @@ export default function PhotoCapturePage() {
   const { photoCount, capturedPhotos, setCapturedPhotos } = usePhotobooth();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [countdown, setCountdown] = useState(5);
+  const [countdown, setCountdown] = useState(10);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [flash, setFlash] = useState(false);
   const [cameraError, setCameraError] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [lastCapturedPhoto, setLastCapturedPhoto] = useState<string | null>(null);
+  const [previewCountdown, setPreviewCountdown] = useState(5);
 
-  // Camera aspect ratio matching photo cell ratio in the strip
-  // 1x3: ~1:1 (square), 1x4: ~4:3 (landscape), 2x3: ~1:1 (square)
-  const photoCellRatio = photoCount === 4 ? 4 / 3 : 1;
+  // Camera aspect ratio matching photo cell ratio in PhotoStrip
+  // Calculated precisely from PhotoStrip component:
+  // stripWidth: 220px (1x3/1x4) or 380px (2x3)
+  // stripHeight: 660px (1x3/1x4) or 600px (2x3)
+  // CONTENT_PAD: 22px, gap-2: 8px
+  // 1x3: 176px / 200px = 0.88
+  // 1x4: 176px / 148px = 1.189
+  // 2x3: 164px / 180px = 0.911
+  const photoCellRatio = photoCount === 4 ? 176/148 : photoCount === 3 ? 176/200 : 164/180;
 
   useEffect(() => {
     async function setupCamera() {
@@ -97,9 +106,31 @@ export default function PhotoCapturePage() {
       photoDataUrl = generatePlaceholderPhoto(currentPhotoIndex, photoCount);
     }
     
-    setCapturedPhotos((prev) => [...prev, photoDataUrl]);
-    setCurrentPhotoIndex(prev => prev + 1);
+    // Store photo for preview instead of directly adding
+    setLastCapturedPhoto(photoDataUrl);
+    setShowPreview(true);
   }, [stream, currentPhotoIndex, setCapturedPhotos, photoCellRatio, photoCount]);
+
+  const acceptPhoto = useCallback(() => {
+    if (lastCapturedPhoto) {
+      setCapturedPhotos((prev) => [...prev, lastCapturedPhoto]);
+      setCurrentPhotoIndex((prev) => prev + 1);
+      setShowPreview(false);
+      setLastCapturedPhoto(null);
+      setCountdown(10);
+    }
+  }, [lastCapturedPhoto, setCapturedPhotos]);
+
+  const retakePhoto = useCallback(() => {
+    // Restart video playback
+    if (videoRef.current && stream) {
+      videoRef.current.play().catch(() => {});
+    }
+    setShowPreview(false);
+    setLastCapturedPhoto(null);
+    setCountdown(10);
+    setPreviewCountdown(5);
+  }, [stream]);
 
   useEffect(() => {
     if (currentPhotoIndex >= photoCount) {
@@ -110,19 +141,34 @@ export default function PhotoCapturePage() {
       return;
     }
 
+    // Preview countdown - auto accept after 5 seconds
+    if (showPreview) {
+      const previewTimer = setInterval(() => {
+        setPreviewCountdown((prev) => {
+          if (prev === 1) {
+            // Auto accept after countdown
+            acceptPhoto();
+            return 5;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(previewTimer);
+    }
+
+    // Camera countdown - auto capture after 10 seconds
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev === 1) {
-          // Use setTimeout to avoid state updates during render
           setTimeout(() => capturePhoto(), 0);
-          return 5;
+          return 10;
         }
         return prev - 1;
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [currentPhotoIndex, photoCount, navigate, stream, capturePhoto]);
+  }, [currentPhotoIndex, photoCount, navigate, stream, capturePhoto, showPreview, acceptPhoto]);
 
   return (
     <div className="size-full flex flex-col lg:flex-row bg-[#1a1aff] text-white p-4 sm:p-6 md:p-8 gap-4 sm:gap-6 md:gap-8 overflow-auto">
@@ -139,42 +185,75 @@ export default function PhotoCapturePage() {
             <p className="text-[#FFD700] text-base sm:text-lg md:text-xl font-semibold text-center">📷 Demo Mode - Using Placeholder Images</p>
           </div>
         )}
+        
+        {/* Preview Mode or Camera View - Unified Container */}
         <div
-          className={`relative w-full ${photoCount === 4 ? 'max-w-5xl' : 'max-w-3xl'} bg-black rounded-lg overflow-hidden border-3 sm:border-4 border-[#FFD700]`}
-          style={{ aspectRatio: photoCellRatio }}
+          className="relative bg-black rounded-lg overflow-hidden border-3 sm:border-4 border-[#FFD700]"
+          style={{ 
+            width: '100%',
+            maxWidth: photoCount === 4 ? 'clamp(300px, 50vw, 480px)' : 'clamp(300px, 50vw, 360px)',
+            aspectRatio: photoCellRatio,
+            margin: '0 auto'
+          }}
         >
-          {cameraError ? (
-            <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
-              <div className="text-center p-4 sm:p-6 md:p-8">
-                <div className="text-4xl sm:text-5xl md:text-6xl mb-3 md:mb-4">🎭</div>
-                <p className="text-xl sm:text-2xl font-bold text-[#FFD700]">Demo Mode Active</p>
-                <p className="text-base sm:text-lg text-gray-400 mt-2">Placeholder photos will be used</p>
+          {/* Camera View - Hidden when preview is shown */}
+          <div style={{ display: showPreview ? 'none' : 'block', width: '100%', height: '100%', position: 'absolute', inset: 0 }}>
+            {cameraError ? (
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-gray-800 to-gray-900">
+                <div className="text-center p-4 sm:p-6 md:p-8">
+                  <div className="text-4xl sm:text-5xl md:text-6xl mb-3 md:mb-4">🎭</div>
+                  <p className="text-xl sm:text-2xl font-bold text-[#FFD700]">Demo Mode Active</p>
+                  <p className="text-base sm:text-lg text-gray-400 mt-2">Placeholder photos will be used</p>
+                </div>
+              </div>
+            ) : (
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                className="w-full h-full object-cover"
+                style={{ transform: 'scaleX(-1)' }}
+              />
+            )}
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
+              <div 
+                className="text-white font-bold drop-shadow-[0_0_30px_rgba(255,255,255,0.9)] transition-all duration-300"
+                style={{ 
+                  fontSize: countdown === 1 ? 'clamp(120px, 20vw, 250px)' : 'clamp(100px, 18vw, 200px)',
+                  color: countdown <= 2 ? '#FFD700' : 'white',
+                }}
+              >
+                {countdown}
+              </div>
+              <div className="text-xl sm:text-2xl md:text-3xl font-bold text-white mt-2 sm:mt-3 md:mt-4 bg-[#1a1aff]/80 px-4 sm:px-5 md:px-6 py-1.5 sm:py-2 rounded-full">
+                Photo {currentPhotoIndex + 1} of {photoCount}
               </div>
             </div>
-          ) : (
-            <video
-              ref={videoRef}
-              autoPlay
-              playsInline
-              muted
-              className="w-full h-full object-cover"
-              style={{ transform: 'scaleX(-1)' }}
-            />
-          )}
-          <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-            <div 
-              className="text-white font-bold drop-shadow-[0_0_30px_rgba(255,255,255,0.9)] transition-all duration-300"
-              style={{ 
-                fontSize: countdown === 1 ? 'clamp(120px, 20vw, 250px)' : 'clamp(100px, 18vw, 200px)',
-                color: countdown <= 2 ? '#FFD700' : 'white',
-              }}
-            >
-              {countdown}
-            </div>
-            <div className="text-xl sm:text-2xl md:text-3xl font-bold text-white mt-2 sm:mt-3 md:mt-4 bg-[#1a1aff]/80 px-4 sm:px-5 md:px-6 py-1.5 sm:py-2 rounded-full">
-              Photo {currentPhotoIndex + 1} of {photoCount}
-            </div>
           </div>
+
+          {/* Preview Mode - Shown only when preview is active */}
+          {showPreview && lastCapturedPhoto && (
+            <div style={{ width: '100%', height: '100%', position: 'absolute', inset: 0 }}>
+              <img src={lastCapturedPhoto} alt="Preview" className="w-full h-full object-cover" />
+              
+              {/* Retake Button - Top Right */}
+              <button
+                onClick={retakePhoto}
+                className="absolute top-3 right-3 sm:top-4 sm:right-4 w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-red-500 hover:bg-red-600 text-white font-bold text-2xl sm:text-3xl transition-all active:scale-95 shadow-lg flex items-center justify-center z-10"
+                title="Retake photo"
+              >
+                ✕
+              </button>
+              
+              {/* Preview Countdown */}
+              <div className="absolute bottom-3 left-1/2 transform -translate-x-1/2 text-center z-10">
+                <div className="text-base sm:text-lg font-bold text-white bg-[#1a1aff]/80 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full">
+                  {previewCountdown}s
+                </div>
+              </div>
+            </div>
+          )}
         </div>
         <canvas ref={canvasRef} className="hidden" />
       </div>
