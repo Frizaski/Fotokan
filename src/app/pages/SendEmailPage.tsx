@@ -16,14 +16,23 @@ export default function SendEmailPage() {
   const [sendError, setSendError] = useState<string>('');
   const [gifReady, setGifReady] = useState(false);
   const [photosForPreview, setPhotosForPreview] = useState<string[]>([]);
+  const [gifDimensions, setGifDimensions] = useState<{ width: number; height: number }>({ width: 400, height: 300 });
   const { selectedBackground, selectedSticker, capturedPhotos, photoCount } = usePhotobooth();
 
   // Generate GIF when component mounts
   useEffect(() => {
     const photosToUse = capturedPhotos.length > 0 ? capturedPhotos : generateDemoPhotos();
     setPhotosForPreview(photosToUse);
+    
+    // Calculate and set GIF dimensions immediately based on photoCount
+    const photoCellRatio = photoCount === 4 ? 4 / 3 : 1;
+    const gifWidth = 400;
+    const gifHeight = Math.round(gifWidth / photoCellRatio);
+    console.log(`[SendEmailPage] Setting GIF dimensions: ${gifWidth}x${gifHeight}, photoCount=${photoCount}, ratio=${photoCellRatio}`);
+    setGifDimensions({ width: gifWidth, height: gifHeight });
+    
     generateGif(photosToUse);
-  }, []);
+  }, [photoCount]);
 
   const generateDemoPhotos = (): string[] => {
     console.log('No captured photos found - generating demo photos for preview');
@@ -83,6 +92,9 @@ export default function SendEmailPage() {
       // Set GIF width and calculate height based on aspect ratio
       const gifWidth = 400;
       const gifHeight = Math.round(gifWidth / photoCellRatio);
+      
+      // Store dimensions for preview container sizing
+      setGifDimensions({ width: gifWidth, height: gifHeight });
       
       console.log(`GIF dimensions: ${gifWidth}x${gifHeight} (ratio: ${photoCellRatio})`);
 
@@ -306,7 +318,13 @@ export default function SendEmailPage() {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 md:gap-8">
           {/* GIF Preview */}
           <div className="flex flex-col items-center gap-3 sm:gap-4">
-            <div className="border-[8px] sm:border-[10px] border-[#FFD700] rounded-lg p-2 bg-black/50 w-[250px] sm:w-[300px] md:w-[400px] h-[188px] sm:h-[225px] md:h-[300px] flex items-center justify-center overflow-hidden relative">
+            <div 
+              className="border-[8px] sm:border-[10px] border-[#FFD700] rounded-lg p-2 bg-black/50 flex items-center justify-center overflow-hidden"
+              style={{
+                width: '300px',
+                height: `${Math.round(300 / (gifDimensions.width / gifDimensions.height))}px`,
+              }}
+            >
               <GifPreview photos={photosForPreview} isGenerating={isGeneratingGif} />
             </div>
             <div className="text-center bg-white/10 backdrop-blur-sm px-4 sm:px-6 py-2 sm:py-3 rounded-lg border-[4px] border-[#FFD700]">
